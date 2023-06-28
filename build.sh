@@ -1,2 +1,2 @@
-gcc test.c -I. -O2 -o ./test
+gcc -I. -O2 -std=gnu11 test.c -o ./test
 ./test

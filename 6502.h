@@ -3,6 +3,7 @@
 #include <stddef.h>
 
 #define LIB6502_LOG_EXCEPTION 1
+#define LIB6502_LOG_DEBUG 2
 
 typedef struct
 {
@@ -87,16 +88,37 @@ static void lib6502Cycle(cpu6502_t *cpu)
 
     uint8_t opcode = cpu->memory[cpu->pc];
 
+    cpu->log(LIB6502_LOG_DEBUG, "", opcode);
+
     switch (opcode)
     {
-    case 0xA9: // LDA #
-        cpu->a = cpu->memory[cpu->pc + 1];
+    //
+    // LDA
+    //
+    case 0xAD: // absolute
+        uint16_t address = cpu->memory[cpu->pc + 1];
+        address |= cpu->memory[cpu->pc + 2] << 8;
+        cpu->a = cpu->memory[address];
+        cpu->pc += 3;
         break;
+    case 0xA9: // implied
+        cpu->a = cpu->memory[cpu->pc + 1];
+        cpu->pc += 2;
+        break;
+
+    //
+    // NOP
+    //
+    case 0xEA:
+        cpu->log(LIB6502_LOG_EXCEPTION, "NOP", opcode);
+        cpu->pc += 1;
+        break;
+    
     default:
         cpu->log(LIB6502_LOG_EXCEPTION, "Undefined instruction", opcode);
+        cpu->pc += 1;
         break;
     }
 
-    cpu->pc += 3;
     cpu->instructions++;
 }
